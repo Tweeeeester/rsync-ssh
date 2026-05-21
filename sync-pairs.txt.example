@@ -1,0 +1,28 @@
+# sync-pairs.txt
+#
+# List the folders you want to sync to your NAS, one per line.
+#
+# Format:
+#   /source/path:/destination/path
+#
+#   - Source path: the path INSIDE the container (map your host folder to this
+#     via a volume mount in docker-compose.yml or your docker run command)
+#   - Destination path: the path on the NAS (must already exist)
+#   - Separator: a single colon (:)
+#
+# Rules:
+#   - Blank lines are ignored
+#   - Lines starting with # are comments
+#   - Each pair must have exactly one colon separating source and destination
+#
+# What happens during sync:
+#   - Files are copied to the NAS over SSH using rsync
+#   - Source files are DELETED after a successful transfer
+#   - Empty directories are cleaned up after the transfer
+#   - If a transfer fails, the source files are left in place
+#
+# Examples:
+
+# /data/photos:/volume1/backups/photos
+# /data/documents:/volume1/backups/documents
+# /data/downloads:/volume1/media/incoming

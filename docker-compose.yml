@@ -1,0 +1,22 @@
+services:
+  rsync-ssh:
+    build: .
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sh", "-c", "[ -f /tmp/last-sync ] && [ $(( $(date +%s) - $(cat /tmp/last-sync) )) -lt 7200 ]"]
+      interval: 5m
+      timeout: 10s
+      start_period: 90s
+      retries: 2
+    env_file: .env
+    volumes:
+      # SSH private key (read-only)
+      - ~/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+
+      # Sync pairs config (read-only)
+      - ./sync-pairs.txt:/config/sync-pairs.txt:ro
+
+      # Source folders to sync — add one volume per source path in sync-pairs.txt
+      # Example:
+      #   - /host/path/to/photos:/data/photos
+      #   - /host/path/to/documents:/data/documents
