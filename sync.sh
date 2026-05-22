@@ -23,9 +23,6 @@ if [ ! -f "$SSH_KEY" ]; then
   exit 1
 fi
 
-# Ensure correct key permissions (SSH requires this)
-chmod 600 "$SSH_KEY"
-
 pair_count=0
 success_count=0
 fail_count=0

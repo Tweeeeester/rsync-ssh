@@ -10,8 +10,9 @@ services:
       retries: 2
     env_file: .env
     volumes:
-      # SSH private key (read-only)
-      - ~/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+      # SSH private key — mount to staging path; entrypoint copies it to /root/.ssh/
+      # with correct ownership so SSH accepts it (bind-mounted files keep host UID).
+      - ~/.ssh/id_ed25519:/run/ssh/id_rsa:ro
 
       # Sync pairs config (read-only)
       - ./sync-pairs.txt:/config/sync-pairs.txt:ro
