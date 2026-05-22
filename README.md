@@ -17,6 +17,55 @@ A Docker container that syncs files to a Synology NAS over SSH using rsync. Runs
 - SSH enabled on the NAS (Control Panel → Terminal & SNMP → Enable SSH)
 - Destination folders already created on the NAS
 
+## Synology NAS Setup
+
+Complete these steps once in DSM before starting the container.
+
+**1. Create a dedicated user**
+
+Control Panel → User & Group → Create a user (e.g. `rsync`).
+
+**2. Enable SSH access for the user**
+
+The user needs a real home directory and shell. In DSM:
+
+Control Panel → User & Group → Advanced → Enable user home service
+
+This creates `/var/services/homes/<username>` for each user.
+
+**3. Add the SSH public key**
+
+SSH into the NAS as the rsync user (or as admin and `sudo su rsync`) and add the public key:
+
+```sh
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+echo "ssh-ed25519 AAAA... your-public-key" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+```
+
+**4. Grant rsync application privilege**
+
+Control Panel → User & Group → Edit the user → Applications tab → enable **rsync**
+
+Without this, Synology blocks rsync sessions at the application layer even after SSH auth succeeds.
+
+**5. Grant shared folder permissions**
+
+Control Panel → Shared Folder → select the destination folder → Edit → Permissions tab → set the rsync user to **Read/Write**
+
+**6. Create destination directories**
+
+rsync will not create destination directories. Create them manually on the NAS before the first sync:
+
+```sh
+mkdir -p /volume1/<shared-folder>/<destination-path>
+```
+
+**7. Use the NAS's direct LAN IP as `NAS_HOST`**
+
+If you access the NAS by hostname, confirm what IP it resolves to from the container — it may differ from how your host machine resolves it (e.g. via a local `~/.ssh/config` override). Using the direct LAN IP (e.g. `10.19.0.2`) avoids this.
+
 ## Setup
 
 **1. Copy the config files:**
@@ -50,7 +99,7 @@ The source path is the path **inside the container**. Map your host folders to t
 
 ```yaml
 volumes:
-  - ~/.ssh/id_rsa:/root/.ssh/id_rsa:ro
+  - ~/.ssh/id_ed25519:/run/ssh/id_rsa:ro  # mounted to staging path; entrypoint copies to root-owned location
   - ./sync-pairs.txt:/config/sync-pairs.txt:ro
   - /host/path/to/photos:/data/photos
   - /host/path/to/documents:/data/documents
